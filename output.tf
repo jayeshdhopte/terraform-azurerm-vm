@@ -65,21 +65,21 @@ output "nic_id" {
 # IMPORTANT: Updated to azurerm_linux_virtual_machine to match your error log
 output "vm_id" {
   description = "Virtual Machine ID"
-  value       = azurerm_linux_virtual_machine.vm.id
+  value       = azurerm_virtual_machine.vm.id
 }
 
 output "vm_name" {
   description = "Virtual Machine Name"
-  value       = azurerm_linux_virtual_machine.vm.name
+  value       = azurerm_virtual_machine.vm.name
 }
 
 output "vm_location" {
   description = "VM Location"
-  value       = azurerm_linux_virtual_machine.vm.location
+  value       = azurerm_virtual_machine.vm.location
 }
 
 output "vm_size" {
   description = "VM Size"
   # In the linux_virtual_machine resource, the attribute is 'size', not 'vm_size'
-  value       = azurerm_linux_virtual_machine.vm.size
+  value       = azurerm_virtual_machine.vm.size
 }
