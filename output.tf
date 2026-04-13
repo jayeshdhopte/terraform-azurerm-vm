@@ -1,5 +1,5 @@
 # ==========================================
-# RESOURCE GROUP
+# 1. RESOURCE GROUP
 # ==========================================
 output "resource_group_name" {
   description = "Name of the Resource Group"
@@ -12,7 +12,7 @@ output "resource_group_location" {
 }
 
 # ==========================================
-# NETWORK
+# 2. NETWORK
 # ==========================================
 output "vnet_name" {
   description = "Virtual Network Name"
@@ -25,7 +25,7 @@ output "subnet_id" {
 }
 
 # ==========================================
-# NSG
+# 3. NSG
 # ==========================================
 output "nsg_id" {
   description = "Network Security Group ID"
@@ -38,10 +38,11 @@ output "nsg_name" {
 }
 
 # ==========================================
-# PUBLIC IP
+# 4. PUBLIC IP
 # ==========================================
 output "public_ip_id" {
   description = "Public IP ID"
+  # Using [0] because the resource likely uses count
   value       = var.public_ip_required == "true" ? azurerm_public_ip.pip[0].id : null
 }
 
@@ -51,7 +52,7 @@ output "public_ip_address" {
 }
 
 # ==========================================
-# NETWORK INTERFACE
+# 5. NETWORK INTERFACE
 # ==========================================
 output "nic_id" {
   description = "Network Interface ID"
@@ -59,32 +60,35 @@ output "nic_id" {
 }
 
 # ==========================================
-# VIRTUAL MACHINE
+# 6. VIRTUAL MACHINE
 # ==========================================
+# IMPORTANT: Updated to azurerm_linux_virtual_machine to match your error log
 output "vm_id" {
   description = "Virtual Machine ID"
-  value       = azurerm_virtual_machine.vm.id
+  value       = azurerm_linux_virtual_machine.vm.id
 }
 
 output "vm_name" {
   description = "Virtual Machine Name"
-  value       = azurerm_virtual_machine.vm.name
+  value       = azurerm_linux_virtual_machine.vm.name
 }
 
 output "vm_location" {
   description = "VM Location"
-  value       = azurerm_virtual_machine.vm.location
+  value       = azurerm_linux_virtual_machine.vm.location
 }
 
 output "vm_size" {
   description = "VM Size"
-  value       = azurerm_virtual_machine.vm.vm_size
+  # In the linux_virtual_machine resource, the attribute is 'size', not 'vm_size'
+  value       = azurerm_linux_virtual_machine.vm.size
 }
 
 # ==========================================
-# IMAGE DETAILS
+# 7. IMAGE DETAILS
 # ==========================================
 output "image_id" {
   description = "Custom Image ID used for VM"
-  value       = data.azurerm_shared_image_version.custom.id
+  # Added a conditional check [0] to prevent "undeclared" error when not using shared image
+  value       = var.use_shared_image ? data.azurerm_shared_image_version.custom[0].id : "Marketplace Image"
 }
