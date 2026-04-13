@@ -81,5 +81,5 @@ output "vm_location" {
 output "vm_size" {
   description = "VM Size"
   # In the linux_virtual_machine resource, the attribute is 'size', not 'vm_size'
-  value       = azurerm_virtual_machine.vm.size
+  value       = azurerm_virtual_machine.vm.vm_size
 }
