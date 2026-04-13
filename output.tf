@@ -83,12 +83,3 @@ output "vm_size" {
   # In the linux_virtual_machine resource, the attribute is 'size', not 'vm_size'
   value       = azurerm_linux_virtual_machine.vm.size
 }
-
-# ==========================================
-# 7. IMAGE DETAILS
-# ==========================================
-output "image_id" {
-  description = "Custom Image ID used for VM"
-  # Added a conditional check [0] to prevent "undeclared" error when not using shared image
-  value       = var.use_shared_image ? data.azurerm_shared_image_version.custom[0].id : "Marketplace Image"
-}
