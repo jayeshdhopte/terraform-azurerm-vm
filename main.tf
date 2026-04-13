@@ -98,6 +98,16 @@ resource "azurerm_network_security_rule" "rule" {
 }
 
 # ==========================================
+# 4.5 CUSTOM IMAGE DATA
+# ==========================================
+data "azurerm_shared_image_version" "custom" {
+  name                = var.shared_image_version     # e.g., "0.0.1"
+  image_name          = var.image_definition_name    # e.g., "goldenimge"
+  gallery_name        = var.shared_gallery           # e.g., "RHEL"
+  resource_group_name = local.rg_name      # Replace with the RG where the Gallery lives
+}
+
+# ==========================================
 # 5. PUBLIC IP & NETWORK INTERFACE
 # ==========================================
 resource "azurerm_public_ip" "pip" {
@@ -106,7 +116,7 @@ resource "azurerm_public_ip" "pip" {
   location            = local.rg_location
   resource_group_name = local.rg_name
   sku                 = "Standard"
-  allocation_method   = title(lower(var.pip_allocation_method))
+  allocation_method    = "Static"
 }
 
 data "azurerm_network_interface" "nic" {
@@ -125,6 +135,8 @@ resource "azurerm_network_interface" "nic" {
     name                          = var.ip_config_name
     subnet_id                     = local.subnet_id
     private_ip_address_allocation = var.private_ip_allocation
+
+    private_ip_address            = var.private_ip_allocation == "Static" ? "10.0.1.10" : null
     
     # Only attach Public IP if the user selected it in ServiceNow
     public_ip_address_id          = var.public_ip_required == "true" ? azurerm_public_ip.pip[0].id : null
@@ -144,30 +156,26 @@ resource "azurerm_network_interface_security_group_association" "nic_nsg" {
 # ==========================================
 # 6. VIRTUAL MACHINE
 # ==========================================
-resource "azurerm_linux_virtual_machine" "vm" {
+resource "azurerm_virtual_machine" "vm" {
   name                  = var.virtual_machine_name
   location              = local.rg_location
   resource_group_name   = local.rg_name
-  size                  = var.vm_size
-  admin_username        = var.admin_username
+  vm_size               = var.vm_size
   network_interface_ids = [local.nic_id]
 
-  disable_password_authentication = true
-
-  admin_ssh_key {
-    username   = var.admin_username
-    public_key = file("${path.module}/ssh/id_rsa.pub")
+# FIX: In this resource, you use this block instead of 'source_image_id'
+  storage_image_reference {
+    id = data.azurerm_shared_image_version.custom.id
   }
 
-  source_image_reference {
-    publisher = var.operating_system_publisher
-    offer     = var.image_offer
-    sku       = var.image_sku
-    version   = "latest"
+  # FIX: In this resource, it is 'storage_os_disk', not 'os_disk'
+  storage_os_disk {
+    name              = "${var.virtual_machine_name}-osdisk"
+    caching           = lower(var.os_disk_caching) == "none" ? "None" : (lower(var.os_disk_caching) == "readonly" ? "ReadOnly" : "ReadWrite")
+    create_option     = "FromImage"
+    managed_disk_type = var.os_storage_account_type
   }
 
-  os_disk {
-    caching              = var.os_disk_caching
-    storage_account_type = var.os_storage_account_type
-  }
+  # IMPORTANT: We leave out the 'os_profile' block entirely 
+  # so that Azure treats this as a SPECIALIZED image.
 }
